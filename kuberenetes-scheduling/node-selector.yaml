@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nodeselectorapp
+  namespace: default
+spec:
+  containers:
+  - name: nodeselectorapp
+    image: nginx
+  nodeSelector:
+    compute: "true"
+
+
+# Getting Scheduled on the nodes which only have that labels.
+
+# Problem:
+# If the 
+# 
+# 
+# 
+# 
+# 
