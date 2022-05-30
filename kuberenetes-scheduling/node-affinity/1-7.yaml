@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: affinity-preferred
+  namespace: default
+  labels:
+    app: node-affinity-pod
+spec:
+  containers:
+  - name: with-node-preferred
+    image: nginx
+    imagePullPolicy: IfNotPresent
+  affinity:
+    nodeAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        preference:
+          matchExpressions:
+          - key: region
+            operator: In 
+            values:
+            - west

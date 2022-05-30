@@ -1,21 +1,16 @@
-MIT License
+1. Terraform state in sync
+	1.1 Adding taints & tolerations
+	1.2 Adding labels
+	1.3 Understanding terraform changes how to apply them in safe way
+		https://gitlab.com/integro_io/idal/stackos-decentralized-proxy-service-gke-iac
 
-Copyright (c) 2022 chrisedrego
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+2. Adding Suggest Policy which includes combination of (Taints & tolerations + nodeAffinity + podAntiAffinity)
+	2.1 Intro to test application (Helm)
+		https://gitlab.com/integro_io/idal/helm-charts/stackos-template/-/blob/master/values.yaml
+	2.2 Need to know how helm changes are being pushed so that i can deployed Policy changes
+	2.3 Test the same on given application
+	2.4 Replicate it across test-stack-os-cluster
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+3. Release on Prod Cluster
+	3.1 After verifying the policy and disucssion with Vishnu/Karthik start releasing the changes on production on all cluster 
