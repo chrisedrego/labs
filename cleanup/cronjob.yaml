@@ -1,0 +1,83 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cleaner
+rules:
+- apiGroups: [""]
+  resources: ["pods","namespaces"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: cleaner
+subjects:
+- kind: ServiceAccount
+  name: cleaner
+  namespace: default
+roleRef:
+  kind: ClusterRole
+  name: cleaner
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cleaner
+  namespace: default
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: cleaner
+  namespace: default
+spec:
+  schedule: "0 0 * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: cleaner
+          containers:
+          - name: cleaner
+            image: portainer/kubectl-shell:latest
+            imagePullPolicy: IfNotPresent
+            command:
+            - /bin/bash
+            - -c
+            - /home/cleanup.sh
+            volumeMounts:
+            - name: scriptconfig
+              subPath: cleanup.sh
+              mountPath: /home/cleanup.sh
+          restartPolicy: OnFailure
+          volumes:
+          - name: scriptconfig
+            configMap:
+              name: cleaner-config
+              defaultMode: 0777
+---
+## Instantly create a cronjob
+# kubectl create job --from=cronjob/cleaner cleaner-one -n default
+apiVersion: v1
+data:
+  cleanup.sh: "#!/bin/bash\n\nfunction GetPods() {\n    shift\n    local arr=(\"$@\")\n
+    \   if [[ $arr == \"\" ]]\n    then  \n        echo \"No Pod Scheduled for Deletion\"\n
+    \   else\n        for i in ${!arr[@]}; do\n            echo -e \"\\nNo:  $i Pod:
+    \ ${arr[$i]} Namespace: $NAMESPACE\"\n            kubectl delete pods \"${arr[$i]}\"
+    --force --grace-period=0 -n $NAMESPACE || echo \"Unable to Delete.\"\n        done
+    \n    fi\n}\nexport NAMESPACE=''\nexport a=$(kubectl get namespace | awk '{print
+    $1}' | tail -n +2)\nfor i in $a; do echo \"Namespace: $i\" && export NAMESPACE=$i
+    && podNames=$(kubectl get pods -n $NAMESPACE --sort-by=.metadata.creationTimestamp
+    --field-selector status.phase=Failed -o go-template --template '{{range .items}}{{.metadata.name}}
+    {{.metadata.creationTimestamp}}{{\"\\n\"}}{{end}}' | awk '$2 <= \"'$(date -Ins
+    --utc | sed 's/+0000/Z/')'\" { print $1 }') && podNames=($podNames) && echo $podNames
+    && GetPods \"${podNames[@]}\"  && echo -e '\\n\\n' && podNames='';done\n\n\npodNames=$(kubectl
+    get pods -n $NAMESPACE --sort-by=.metadata.creationTimestamp --field-selector
+    status.phase=Failed -o go-template --template '{{range .items}}{{.metadata.name}}
+    {{.metadata.creationTimestamp}}{{\"\\n\"}}{{end}}' | awk '$2 <= \"'$(date -Ins
+    --utc | sed 's/+0000/Z/')'\" { print $1 }') && podNames=($podNames) && echo $podNames"
+kind: ConfigMap
+metadata:
+  namespace: default
+  name: cleaner-config
